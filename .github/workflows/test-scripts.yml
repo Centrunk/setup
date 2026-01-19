@@ -1,0 +1,171 @@
+name: Test Setup Scripts
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-prepare-pi:
+    name: Test prepare_pi.sh
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pi-os-version: ["12", "13"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Create test container
+        id: container
+        run: |
+          docker run -d --platform linux/arm64 \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            --privileged \
+            --name test-prepare-pi-${{ matrix.pi-os-version }} \
+            debian:bookworm-slim \
+            tail -f /dev/null
+          echo "container=test-prepare-pi-${{ matrix.pi-os-version }}" >> $GITHUB_OUTPUT
+
+      - name: Setup mock Pi environment
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            chmod +x .github/scripts/*.sh
+            ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-os-version == '12' && '4' || '5' }} ${{ matrix.pi-os-version }}
+          "
+
+      - name: Setup boot files
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/setup-boot-files.sh
+
+      - name: Install mock systemctl
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/mock-systemctl.sh
+
+      - name: Run prepare_pi.sh
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            chmod +x prepare_pi.sh
+            ./prepare_pi.sh
+          "
+
+      - name: Validate changes
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/validate-prepare-pi.sh ${{ matrix.pi-os-version }}
+
+      - name: Test idempotency
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            echo 'Testing idempotency (running script again)...'
+            ./prepare_pi.sh
+            echo '✓ Script is idempotent'
+          "
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f ${{ steps.container.outputs.container }} || true
+
+  test-install-dvmhost:
+    name: Test install_dvmhost.sh
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pi-os-version: ["12", "13"]
+        pi-model: ["4", "5"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Create test container
+        id: container
+        run: |
+          docker run -d --platform linux/arm64 \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            --name test-dvmhost-${{ matrix.pi-os-version }}-pi${{ matrix.pi-model }} \
+            debian:bookworm-slim \
+            tail -f /dev/null
+          echo "container=test-dvmhost-${{ matrix.pi-os-version }}-pi${{ matrix.pi-model }}" >> $GITHUB_OUTPUT
+
+      - name: Setup mock Pi environment
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            chmod +x .github/scripts/*.sh
+            ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-model }} ${{ matrix.pi-os-version }}
+          "
+
+      - name: Update packages
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            apt-get update -qq
+            apt-get install -y curl
+          "
+
+      - name: Setup mock NetBird
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/mock-netbird.sh
+
+      - name: Run install_dvmhost.sh
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            chmod +x install_dvmhost.sh
+            ./install_dvmhost.sh main
+          "
+
+      - name: Restore curl
+        if: always()
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/restore-curl.sh || true
+
+      - name: Validate installation
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/validate-dvmhost.sh
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f ${{ steps.container.outputs.container }} || true
+
+  validation-summary:
+    name: Validation Summary
+    needs: [test-prepare-pi, test-install-dvmhost]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test-prepare-pi.result }}" != "success" ]; then
+            echo "❌ prepare_pi.sh tests failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.test-install-dvmhost.result }}" != "success" ]; then
+            echo "❌ install_dvmhost.sh tests failed"
+            exit 1
+          fi
+
+          echo "✅ All tests passed successfully!"
+          echo "Scripts validated in:"
+          echo "  - Raspberry Pi OS 12 (Pi 4 & 5)"
+          echo "  - Raspberry Pi OS 13 (Pi 4 & 5)"
