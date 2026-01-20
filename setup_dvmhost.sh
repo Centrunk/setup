@@ -108,8 +108,8 @@ prompt_site_type() {
   
   local choice
   while true; do
-    read -r choice </dev/tty || choice=""
     echo -n "Enter choice (1 or 2): " >&2
+    read -r choice </dev/tty || choice=""
     case $choice in
       1)
         echo "CC/VC"
