@@ -66,7 +66,7 @@ This is a setup scripts repository for automating environment configuration and 
 
 
 - `install_dvmhost.sh`: Updates package lists, upgrades existing packages, and installs common dependencies.
-  - Install: git nano stm32flash gcc-arm-none-eabi cmake libasio-dev libncurses-dev libssl-dev
+  - Install: git nano stm32flash
   - Run: 
     - `curl -fsSL https://pkgs.netbird.io/install.sh | sh`
     - `mkdir /var/log/centrunk/`

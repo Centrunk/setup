@@ -134,11 +134,6 @@ install_dependencies() {
     git
     nano
     stm32flash
-    gcc-arm-none-eabi
-    cmake
-    libasio-dev
-    libncurses-dev
-    libssl-dev
   )
   
   log_info "Installing: ${packages[*]}"
