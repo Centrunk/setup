@@ -269,18 +269,14 @@ show_status() {
   echo ""
   
   echo -e "${YELLOW}2. DVMHost Installation (install_dvmhost.sh):${NC}"
-  echo -ne "  Required packages installed: "
-  check_packages_installed
-  display_status $?
-  echo -ne "  NetBird installed: "
-  check_netbird_installed
-  display_status $?
-  echo -ne "  Directories created: "
-  check_directories
-  display_status $?
-  echo -ne "  DVMHost binaries installed: "
-  check_dvmhost_installed
-  display_status $?
+  echo -n "  Required packages installed: "
+  check_packages_installed && echo -e "$CHECK" || echo -e "$CROSS"
+  echo -n "  NetBird installed: "
+  check_netbird_installed && echo -e "$CHECK" || echo -e "$CROSS"
+  echo -n "  Directories created: "
+  check_directories && echo -e "$CHECK" || echo -e "$CROSS"
+  echo -n "  DVMHost binaries installed: "
+  check_dvmhost_installed && echo -e "$CHECK" || echo -e "$CROSS"
   echo ""
 }
 
