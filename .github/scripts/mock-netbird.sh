@@ -19,6 +19,7 @@ cat > /usr/local/bin/netbird << 'NB'
 echo "netbird version 0.0.0-mock"
 NB
 chmod +x /usr/local/bin/netbird
+echo "NetBird installed successfully"
 NETBIRD
 chmod +x /tmp/mock-scripts/netbird-install.sh
 
