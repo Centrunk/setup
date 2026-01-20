@@ -108,8 +108,7 @@ prompt_site_type() {
   
   local choice
   while true; do
-    echo -n "Enter choice (1 or 2): " >&2
-    read -r choice </dev/tty || choice=""
+    read -r -p "Enter choice (1 or 2): " choice </dev/tty || choice=""
     case $choice in
       1)
         echo "CC/VC"
@@ -159,14 +158,12 @@ prompt_for_placeholder() {
   
   local value
   echo ""
-  echo -n "Enter value for ${display_name}: " >&2
-  read -r value </dev/tty || value=""
+  read -r -p "Enter value for ${display_name}: " value </dev/tty || value=""
   
   # Validate that value is not empty
   while [ -z "$value" ]; do
     log_warn "Value cannot be empty"
-    echo -n "Enter value for ${display_name}: " >&2
-    read -r value </dev/tty || value=""
+    read -r -p "Enter value for ${display_name}: " value </dev/tty || value=""
   done
   
   echo "$value"
