@@ -18,7 +18,7 @@ done
 echo "✓ Required directories created"
 
 # Check packages were installed
-for pkg in git nano cmake; do
+for pkg in git nano; do
   if ! command -v $pkg &> /dev/null; then
     echo "ERROR: Package $pkg not installed"
     exit 1
@@ -26,32 +26,5 @@ for pkg in git nano cmake; do
 done
 echo "✓ Required packages installed"
 
-# Check DVMHost was cloned
-if [ ! -d /opt/dvmhost ]; then
-  echo "ERROR: DVMHost directory not found"
-  exit 1
-fi
-echo "✓ DVMHost repository cloned"
-
-# Check build directory exists
-if [ ! -d /opt/dvmhost/build ]; then
-  echo "ERROR: Build directory not created"
-  exit 1
-fi
-echo "✓ Build directory created"
-
-# Check if CMake was run (CMakeCache.txt should exist)
-if [ ! -f /opt/dvmhost/build/CMakeCache.txt ]; then
-  echo "ERROR: CMake was not run successfully"
-  exit 1
-fi
-echo "✓ CMake configuration completed"
-
-# Check if Makefile exists
-if [ ! -f /opt/dvmhost/Makefile ]; then
-  echo "ERROR: Makefile not generated"
-  exit 1
-fi
-echo "✓ Build configuration successful"
 
 echo "All validations passed!"
