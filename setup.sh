@@ -284,7 +284,7 @@ run_prepare_pi() {
   
   if ! ensure_script "prepare_pi.sh"; then
     echo -e "${RED}Error: Could not get prepare_pi.sh${NC}"
-    read -p "Press Enter to continue..."
+    read -p "Press Enter to continue..." </dev/tty
     return
   fi
   
@@ -298,7 +298,7 @@ run_prepare_pi() {
     echo -e "${RED}Pi preparation failed with exit code: $exit_code${NC}"
   fi
   echo ""
-  read -p "Press Enter to continue..."
+  read -p "Press Enter to continue..." </dev/tty
 }
 
 # Run install_dvmhost.sh script
@@ -309,7 +309,7 @@ run_install_dvmhost() {
   
   if ! ensure_script "install_dvmhost.sh"; then
     echo -e "${RED}Error: Could not get install_dvmhost.sh${NC}"
-    read -p "Press Enter to continue..."
+    read -p "Press Enter to continue..." </dev/tty
     return
   fi
   
@@ -323,7 +323,7 @@ run_install_dvmhost() {
     echo -e "${RED}DVMHost installation failed with exit code: $exit_code${NC}"
   fi
   echo ""
-  read -p "Press Enter to continue..."
+  read -p "Press Enter to continue..." </dev/tty
 }
 
 # Run all setup scripts in order
@@ -335,7 +335,7 @@ run_all() {
   # Ensure both scripts are available
   if ! ensure_script "prepare_pi.sh" || ! ensure_script "install_dvmhost.sh"; then
     echo -e "${RED}Error: Could not download required scripts${NC}"
-    read -p "Press Enter to continue..."
+    read -p "Press Enter to continue..." </dev/tty
     return
   fi
   
@@ -346,7 +346,7 @@ run_all() {
   
   if [ $prepare_exit -ne 0 ]; then
     echo -e "${RED}Pi preparation failed. Aborting full setup.${NC}"
-    read -p "Press Enter to continue..."
+    read -p "Press Enter to continue..." </dev/tty
     return
   fi
   
@@ -363,7 +363,7 @@ run_all() {
     echo -e "${RED}DVMHost installation failed${NC}"
   fi
   echo ""
-  read -p "Press Enter to continue..."
+  read -p "Press Enter to continue..." </dev/tty
 }
 
 # Show main menu
@@ -387,7 +387,7 @@ main() {
   
   while true; do
     show_menu
-    read -r choice || choice=""
+    read -r choice </dev/tty || choice=""
     
     case "${choice:-}" in
       1)
