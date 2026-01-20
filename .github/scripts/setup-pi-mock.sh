@@ -13,9 +13,13 @@ OS_VERSION="${2:-12}"
 
 echo "Creating mock Raspberry Pi $PI_VERSION environment (OS $OS_VERSION)..."
 
-# Create mock device tree
-mkdir -p /proc/device-tree
-echo -n "Raspberry Pi $PI_VERSION Model B Rev 1.0" > /proc/device-tree/model
+# Create mock device tree in a writable location, then bind-mount it
+mkdir -p /tmp/mock-device-tree
+echo -n "Raspberry Pi $PI_VERSION Model B Rev 1.0" > /tmp/mock-device-tree/model
+
+# Bind-mount the mock over /proc/device-tree
+mkdir -p /proc/device-tree 2>/dev/null || true
+mount --bind /tmp/mock-device-tree /proc/device-tree
 
 # Create mock os-release
 cat > /etc/os-release << EOF
