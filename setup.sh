@@ -233,7 +233,7 @@ display_status() {
 show_header() {
   clear
   echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${CYAN}║${NC}         ${BLUE}Raspberry Pi DVMHost Setup Menu${NC}                      ${CYAN}║${NC}"
+  echo -e "${CYAN}║${NC}         ${BLUE}Raspberry Pi DVMHost Setup Menu${NC}                       ${CYAN}║${NC}"
   echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
   echo ""
 }
