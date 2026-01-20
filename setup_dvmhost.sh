@@ -99,7 +99,7 @@ check_dvmhost_installed() {
 
 # Prompt user for site type
 prompt_site_type() {
-  log_step "Selecting site type..."
+  log_step "Selecting site type..." >&2
   
   local choice
   while true; do
@@ -119,7 +119,7 @@ prompt_site_type() {
         return 0
         ;;
       *)
-        log_warn "Invalid choice. Please enter 1 or 2."
+        log_warn "Invalid choice. Please enter 1 or 2." >&2
         ;;
     esac
   done
