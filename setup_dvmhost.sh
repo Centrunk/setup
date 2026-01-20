@@ -108,7 +108,7 @@ prompt_site_type() {
   
   local choice
   while true; do
-    read -p "Enter choice (1 or 2): " choice
+    read -p "Enter choice (1 or 2): " choice </dev/tty
     case $choice in
       1)
         echo "CC/VC"
@@ -157,12 +157,12 @@ prompt_for_placeholder() {
   local display_name=$(echo "$placeholder" | tr '_' ' ' | awk '{for(i=1;i<=NF;i++) $i=tolower($i); print}')
   
   echo ""
-  read -p "Enter value for ${display_name}: " value
+  read -p "Enter value for ${display_name}: " value </dev/tty
   
   # Validate that value is not empty
   while [ -z "$value" ]; do
     log_warn "Value cannot be empty"
-    read -p "Enter value for ${display_name}: " value
+    read -p "Enter value for ${display_name}: " value </dev/tty
   done
   
   echo "$value"
