@@ -131,7 +131,7 @@ jobs:
           docker exec ${{ steps.container.outputs.container }} bash -c "
             source /etc/profile.d/pi-test-env.sh
             chmod +x install_dvmhost.sh
-            ./install_dvmhost.sh main
+            ./install_dvmhost.sh
           "
 
       - name: Restore curl
