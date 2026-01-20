@@ -15,7 +15,7 @@
 set -euo pipefail
 
 # Constants
-DVMHOST_BINARY_URL="https://github.com/Centrunk/dvmbins/releases/latest/download/dvmhost-arm64.tar.xz"
+DVMHOST_BINARY_URL="https://github.com/Centrunk/dvmbins/raw/refs/heads/master/dvmhost-arm64.tar.xz"
 DVMHOST_DIR="/opt/centrunk/dvmhost"
 CENTRUNK_LOG_DIR="/var/log/centrunk"
 CENTRUNK_OPT_DIR="/opt/centrunk"
