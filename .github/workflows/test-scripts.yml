@@ -149,9 +149,81 @@ jobs:
         if: always()
         run: docker rm -f ${{ steps.container.outputs.container }} || true
 
+  test-setup-dvmhost:
+    name: Test setup_dvmhost.sh
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pi-os-version: ["12", "13"]
+        site-type: ["CC/VC", "CONVENTIONAL"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for ARM emulation
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Create test container
+        id: container
+        run: |
+          docker run -d --platform linux/arm64 \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            --name test-setup-dvmhost-${{ matrix.pi-os-version }}-${{ matrix.site-type == 'CC/VC' && 'ccvc' || 'conv' }} \
+            debian:bookworm-slim \
+            tail -f /dev/null
+          echo "container=test-setup-dvmhost-${{ matrix.pi-os-version }}-${{ matrix.site-type == 'CC/VC' && 'ccvc' || 'conv' }}" >> $GITHUB_OUTPUT
+
+      - name: Setup mock Pi environment
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            chmod +x .github/scripts/*.sh
+            source ./.github/scripts/setup-pi-mock.sh 5 ${{ matrix.pi-os-version }}
+          "
+
+      - name: Update packages and install dependencies
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            apt-get update -qq
+            apt-get install -y curl
+          "
+
+      - name: Setup config directory
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            mkdir -p /opt/centrunk/configs
+            mkdir -p /opt/centrunk/dvmhost
+            touch /opt/centrunk/dvmhost/dummy
+          "
+
+      - name: Setup mock config templates
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/setup-mock-templates.sh
+
+      - name: Run setup_dvmhost.sh (automated)
+        run: |
+          docker exec ${{ steps.container.outputs.container }} bash -c "
+            source /etc/profile.d/pi-test-env.sh
+            chmod +x setup_dvmhost.sh
+            ./.github/scripts/run-setup-dvmhost-automated.sh '${{ matrix.site-type }}'
+          "
+
+      - name: Validate configuration
+        run: |
+          docker exec ${{ steps.container.outputs.container }} \
+            ./.github/scripts/validate-setup-dvmhost.sh '${{ matrix.site-type }}'
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f ${{ steps.container.outputs.container }} || true
+
   validation-summary:
     name: Validation Summary
-    needs: [test-prepare-pi, test-install-dvmhost]
+    needs: [test-prepare-pi, test-install-dvmhost, test-setup-dvmhost]
     runs-on: ubuntu-latest
     if: always()
 
@@ -168,7 +240,13 @@ jobs:
             exit 1
           fi
 
+          if [ "${{ needs.test-setup-dvmhost.result }}" != "success" ]; then
+            echo "❌ setup_dvmhost.sh tests failed"
+            exit 1
+          fi
+
           echo "✅ All tests passed successfully!"
           echo "Scripts validated in:"
           echo "  - Raspberry Pi OS 12 (Pi 4 & 5)"
           echo "  - Raspberry Pi OS 13 (Pi 4 & 5)"
+          echo "  - CC/VC and Conventional configurations"

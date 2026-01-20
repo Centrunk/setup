@@ -214,6 +214,21 @@ check_dvmhost_installed() {
   return 1
 }
 
+# Check if DVMHost is configured
+check_dvmhost_configured() {
+  local config_dir="/opt/centrunk/configs"
+  
+  if [ ! -d "$config_dir" ]; then
+    return 1
+  fi
+  
+  # Check if any .yml config files exist
+  if ls "$config_dir"/*.yml &>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
 # Display status with symbol
 display_status() {
   local status=$1
@@ -274,6 +289,11 @@ show_status() {
   echo -n "  DVMHost binaries installed: "
   check_dvmhost_installed && echo -e "$CHECK" || echo -e "$CROSS"
   echo ""
+  
+  echo -e "${YELLOW}3. DVMHost Configuration (setup_dvmhost.sh):${NC}"
+  echo -n "  Configuration files created: "
+  check_dvmhost_configured && echo -e "$CHECK" || echo -e "$CROSS"
+  echo ""
 }
 
 # Run prepare_pi.sh script
@@ -326,14 +346,39 @@ run_install_dvmhost() {
   read -p "Press Enter to continue..." </dev/tty
 }
 
+# Run setup_dvmhost.sh script
+run_setup_dvmhost() {
+  show_header
+  echo -e "${BLUE}Running DVMHost Configuration Script...${NC}"
+  echo ""
+  
+  if ! ensure_script "setup_dvmhost.sh"; then
+    echo -e "${RED}Error: Could not get setup_dvmhost.sh${NC}"
+    read -p "Press Enter to continue..." </dev/tty
+    return
+  fi
+  
+  bash "$SCRIPT_DIR/setup_dvmhost.sh"
+  local exit_code=$?
+  
+  echo ""
+  if [ $exit_code -eq 0 ]; then
+    echo -e "${GREEN}DVMHost configuration completed successfully${NC}"
+  else
+    echo -e "${RED}DVMHost configuration failed with exit code: $exit_code${NC}"
+  fi
+  echo ""
+  read -p "Press Enter to continue..." </dev/tty
+}
+
 # Run all setup scripts in order
 run_all() {
   show_header
   echo -e "${BLUE}Running All Setup Scripts...${NC}"
   echo ""
   
-  # Ensure both scripts are available
-  if ! ensure_script "prepare_pi.sh" || ! ensure_script "install_dvmhost.sh"; then
+  # Ensure all scripts are available
+  if ! ensure_script "prepare_pi.sh" || ! ensure_script "install_dvmhost.sh" || ! ensure_script "setup_dvmhost.sh"; then
     echo -e "${RED}Error: Could not download required scripts${NC}"
     read -p "Press Enter to continue..." </dev/tty
     return
@@ -356,11 +401,23 @@ run_all() {
   bash "$SCRIPT_DIR/install_dvmhost.sh"
   local install_exit=$?
   
+  if [ $install_exit -ne 0 ]; then
+    echo -e "${RED}DVMHost installation failed. Aborting full setup.${NC}"
+    read -p "Press Enter to continue..." </dev/tty
+    return
+  fi
+  
   echo ""
-  if [ $install_exit -eq 0 ]; then
+  echo -e "${YELLOW}Step 3: DVMHost Configuration${NC}"
+  echo ""
+  bash "$SCRIPT_DIR/setup_dvmhost.sh"
+  local config_exit=$?
+  
+  echo ""
+  if [ $config_exit -eq 0 ]; then
     echo -e "${GREEN}All setup completed successfully!${NC}"
   else
-    echo -e "${RED}DVMHost installation failed${NC}"
+    echo -e "${RED}DVMHost configuration failed${NC}"
   fi
   echo ""
   read -p "Press Enter to continue..." </dev/tty
@@ -374,8 +431,9 @@ show_menu() {
   echo -e "${YELLOW}Options:${NC}"
   echo "  1) Run Pi Preparation Script (prepare_pi.sh)"
   echo "  2) Run DVMHost Installation Script (install_dvmhost.sh)"
-  echo "  3) Run All Setup Scripts"
-  echo "  4) Refresh Status"
+  echo "  3) Run DVMHost Configuration Script (setup_dvmhost.sh)"
+  echo "  4) Run All Setup Scripts"
+  echo "  5) Refresh Status"
   echo "  q) Quit"
   echo ""
   echo -ne "${BLUE}Select an option:${NC} "
@@ -397,9 +455,12 @@ main() {
         run_install_dvmhost
         ;;
       3)
-        run_all
+        run_setup_dvmhost
         ;;
       4)
+        run_all
+        ;;
+      5)
         # Just refresh - the loop will redraw
         continue
         ;;

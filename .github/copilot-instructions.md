@@ -74,7 +74,19 @@ This is a setup scripts repository for automating environment configuration and 
     - `mkdir /opt/centrunk/configs/`  
     - Retrieve the dvmhost-arm64.tar.xz from https://github.com/Centrunk/dvmbins and extract it to /opt/centrunk/dvmhost
 
+- `setup_dvmhost.sh`: Configures dvmhost with input from the user.
+  - Ask the user which type of site they have:
+    - CC/VC
+    - Conventional
+  - Download the correct config file template from the Centrunk GitHub repo based on their selection.
+    - CC/VC -> https://raw.githubusercontent.com/Centrunk/centrunk-config-generator/templates/configCC.yml and configVC.yml
+    - Conventional -> https://raw.githubusercontent.com/Centrunk/centrunk-config-generator/templates/configCONVENTIONAL.yml
+  - Read the files and find all the ${PLACEHOLDER} values.
+  - For each placeholder, prompt the user to enter a value.
+  - After all values are collected, write the final configCC.yml, configVC.yml, or configCONVENTIONAL.yml to /opt/centrunk/configs/
+
 ## CI/CD
 - Use GitHub Actions to run scripts in a Raspberry Pi OS 12 and Raspberry Pi OS 13 environment.
 - Validate that scripts complete successfully and idempotently.
 - Report any errors or warnings in the action logs.
+- At all times, ensure CI/CD is up-to-date with the current scripts and configurations.
