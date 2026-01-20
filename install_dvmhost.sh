@@ -18,7 +18,7 @@
 set -euo pipefail
 
 # Constants
-DVMHOST_BRANCH="${1:-main}"
+DVMHOST_BRANCH="${1:-4.32j_maint}"
 DVMHOST_REPO="https://github.com/DVMProject/dvmhost.git"
 DVMHOST_DIR="/opt/dvmhost"
 CENTRUNK_LOG_DIR="/var/log/centrunk"
