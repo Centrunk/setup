@@ -103,11 +103,11 @@ prompt_site_type() {
   
   local choice
   while true; do
-    echo ""
-    echo "Please select your site type:"
-    echo "  1) CC/VC (Control Channel / Voice Channel)"
-    echo "  2) Conventional"
-    echo ""
+    echo "" >&2
+    echo "Please select your site type:" >&2
+    echo "  1) CC/VC (Control Channel / Voice Channel)" >&2
+    echo "  2) Conventional" >&2
+    echo "" >&2
     read -r -p "Enter choice (1 or 2): " choice </dev/tty || choice=""
     case $choice in
       1)
