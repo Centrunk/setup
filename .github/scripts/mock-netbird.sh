@@ -27,7 +27,8 @@ chmod +x /tmp/mock-scripts/netbird-install.sh
 cat > /usr/local/bin/curl-wrapper << 'CURL'
 #!/bin/bash
 if [[ "$@" =~ "netbird" ]]; then
-  exec /tmp/mock-scripts/netbird-install.sh
+  # Output the script content (not execute it) so it can be piped to sh
+  cat /tmp/mock-scripts/netbird-install.sh
 else
   exec /usr/bin/curl.real "$@"
 fi
