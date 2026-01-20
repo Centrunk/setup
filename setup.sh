@@ -179,7 +179,7 @@ check_packages_installed() {
   )
   
   for pkg in "${packages[@]}"; do
-    if ! dpkg -l | grep -q "^ii  $pkg "; then
+    if ! dpkg -s "$pkg" &>/dev/null; then
       return 1  # Package not installed
     fi
   done
