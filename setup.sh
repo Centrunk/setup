@@ -52,17 +52,13 @@ check_root() {
   fi
 }
 
-# Download script if not present
+# Download script (always re-download with cache-busting)
 ensure_script() {
   local script_name=$1
   local script_path="$SCRIPT_DIR/$script_name"
   
-  if [ -f "$script_path" ]; then
-    return 0
-  fi
-  
   echo -e "${BLUE}Downloading $script_name...${NC}"
-  if ! curl -fsSL -o "$script_path" "$GITHUB_RAW_URL/$script_name"; then
+  if ! curl -fsSL -o "$script_path" "$GITHUB_RAW_URL/$script_name?$(date +%s)"; then
     echo -e "${RED}Failed to download $script_name${NC}"
     return 1
   fi
