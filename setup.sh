@@ -391,9 +391,9 @@ main() {
   
   while true; do
     show_menu
-    read -r choice
+    read -r choice || choice=""
     
-    case $choice in
+    case "${choice:-}" in
       1)
         run_prepare_pi
         ;;
