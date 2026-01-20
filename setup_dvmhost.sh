@@ -20,7 +20,7 @@ set -euo pipefail
 
 # Constants
 CENTRUNK_CONFIG_DIR="/opt/centrunk/configs"
-TEMPLATE_BASE_URL="https://raw.githubusercontent.com/Centrunk/centrunk-config-generator/templates"
+TEMPLATE_BASE_URL="https://raw.githubusercontent.com/Centrunk/centrunk-config-generator/main/templates/"
 CC_CONFIG_URL="${TEMPLATE_BASE_URL}/configCC.yml"
 VC_CONFIG_URL="${TEMPLATE_BASE_URL}/configVC.yml"
 CONVENTIONAL_CONFIG_URL="${TEMPLATE_BASE_URL}/configCONVENTIONAL.yml"
