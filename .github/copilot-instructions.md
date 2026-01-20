@@ -68,16 +68,11 @@ This is a setup scripts repository for automating environment configuration and 
 - `install_dvmhost.sh`: Updates package lists, upgrades existing packages, and installs common dependencies.
   - Install: git nano stm32flash gcc-arm-none-eabi cmake libasio-dev libncurses-dev libssl-dev
   - Run: 
-    -  `curl -fsSL https://pkgs.netbird.io/install.sh | sh`
+    - `curl -fsSL https://pkgs.netbird.io/install.sh | sh`
     - `mkdir /var/log/centrunk/`
     - `mkdir /opt/centrunk/`
-    - `mkdir /opt/centrunk/configs/`
-    - Clone with recurse-submodules https://github.com/DVMProject/dvmhost.git to /opt/dvmhost -- using a branch specified in a variable `DVMHOST_BRANCH` (default `main`)
-    - `mkdir /opt/dvmhost/build`
-    - `cd /opt/dvmhost/build`
-    - `cmake ..`
-    - `cd ..`
-    - `make`
+    - `mkdir /opt/centrunk/configs/`  
+    - Retrieve the dvmhost-arm64.tar.xz from https://github.com/Centrunk/dvmbins and extract it to /opt/centrunk/dvmhost
 
 ## CI/CD
 - Use GitHub Actions to run scripts in a Raspberry Pi OS 12 and Raspberry Pi OS 13 environment.

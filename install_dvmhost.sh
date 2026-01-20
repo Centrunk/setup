@@ -2,13 +2,10 @@
 #
 # install_dvmhost.sh - Install DVMHost and dependencies
 #
-# This script installs DVMHost (https://github.com/DVMProject/dvmhost) and all
+# This script installs DVMHost from precompiled binaries and all
 # required dependencies on Raspberry Pi OS.
 #
-# Usage: sudo ./install_dvmhost.sh [branch]
-#
-# Arguments:
-#   branch - Optional: Git branch to checkout (default: main)
+# Usage: sudo ./install_dvmhost.sh
 #
 # Requirements:
 # - Raspberry Pi OS 12 or 13
@@ -18,9 +15,8 @@
 set -euo pipefail
 
 # Constants
-DVMHOST_BRANCH="${1:-4.32j_maint}"
-DVMHOST_REPO="https://github.com/DVMProject/dvmhost.git"
-DVMHOST_DIR="/opt/dvmhost"
+DVMHOST_BINARY_URL="https://github.com/Centrunk/dvmbins/releases/latest/download/dvmhost-arm64.tar.xz"
+DVMHOST_DIR="/opt/centrunk/dvmhost"
 CENTRUNK_LOG_DIR="/var/log/centrunk"
 CENTRUNK_OPT_DIR="/opt/centrunk"
 CENTRUNK_CONFIG_DIR="/opt/centrunk/configs"
@@ -198,83 +194,48 @@ create_directories() {
   log_info "Directories created successfully"
 }
 
-# Clone DVMHost repository
-clone_dvmhost() {
-  log_step "Cloning DVMHost repository (branch: $DVMHOST_BRANCH)"
+# Download and extract DVMHost binaries
+download_dvmhost() {
+  log_step "Downloading DVMHost precompiled binaries"
   
   if [ -d "$DVMHOST_DIR" ]; then
     log_warn "DVMHost directory already exists at $DVMHOST_DIR"
-    read -p "Do you want to remove it and re-clone? (y/N): " -n 1 -r
+    read -p "Do you want to remove it and reinstall? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       log_info "Removing existing directory"
       rm -rf "$DVMHOST_DIR"
     else
-      log_info "Skipping clone, using existing directory"
+      log_info "Skipping download, using existing installation"
       return
     fi
   fi
   
-  log_info "Cloning with recursive submodules from $DVMHOST_REPO"
-  git clone --recurse-submodules -b "$DVMHOST_BRANCH" "$DVMHOST_REPO" "$DVMHOST_DIR" || {
-    log_error "Failed to clone DVMHost repository"
+  log_info "Creating DVMHost directory"
+  mkdir -p "$DVMHOST_DIR" || {
+    log_error "Failed to create directory: $DVMHOST_DIR"
     exit 1
   }
   
-  log_info "Repository cloned successfully"
-}
-
-# Build DVMHost
-build_dvmhost() {
-  log_step "Building DVMHost"
+  local temp_file="/tmp/dvmhost-arm64.tar.xz"
   
-  if [ ! -d "$DVMHOST_DIR" ]; then
-    log_error "DVMHost directory not found at $DVMHOST_DIR"
-    exit 1
-  fi
-  
-  cd "$DVMHOST_DIR" || {
-    log_error "Failed to change directory to $DVMHOST_DIR"
+  log_info "Downloading from $DVMHOST_BINARY_URL"
+  curl -fsSL -o "$temp_file" "$DVMHOST_BINARY_URL" || {
+    log_error "Failed to download DVMHost binaries"
     exit 1
   }
   
-  # Create build directory
-  if [ -d "build" ]; then
-    log_info "Build directory already exists"
-  else
-    log_info "Creating build directory"
-    mkdir build || {
-      log_error "Failed to create build directory"
-      exit 1
-    }
-  fi
-  
-  # Run cmake
-  log_info "Running CMake configuration"
-  cd build || {
-    log_error "Failed to change directory to build"
+  log_info "Extracting binaries to $DVMHOST_DIR"
+  tar -xf "$temp_file" -C "$DVMHOST_DIR" || {
+    log_error "Failed to extract DVMHost binaries"
+    rm -f "$temp_file"
     exit 1
   }
   
-  cmake .. || {
-    log_error "CMake configuration failed"
-    exit 1
-  }
+  log_info "Cleaning up temporary files"
+  rm -f "$temp_file"
   
-  # Return to main directory
-  cd .. || {
-    log_error "Failed to return to main directory"
-    exit 1
-  }
-  
-  # Build the project
-  log_info "Building project (this may take several minutes)"
-  make || {
-    log_error "Build failed"
-    exit 1
-  }
-  
-  log_info "Build completed successfully"
+  log_info "DVMHost binaries installed successfully"
 }
 
 # Display completion message
@@ -285,7 +246,6 @@ display_completion() {
   log_info "=========================================="
   echo ""
   log_info "Installation summary:"
-  log_info "  - DVMHost branch: $DVMHOST_BRANCH"
   log_info "  - Installation directory: $DVMHOST_DIR"
   log_info "  - Log directory: $CENTRUNK_LOG_DIR"
   log_info "  - Config directory: $CENTRUNK_CONFIG_DIR"
@@ -299,7 +259,6 @@ display_completion() {
 # Main execution
 main() {
   log_info "Starting DVMHost installation"
-  log_info "Using branch: $DVMHOST_BRANCH"
   echo ""
   
   check_root
@@ -329,13 +288,8 @@ main() {
   
   echo ""
   
-  # Clone repository
-  clone_dvmhost
-  
-  echo ""
-  
-  # Build DVMHost
-  build_dvmhost
+  # Download and extract DVMHost
+  download_dvmhost
   
   # Display completion message
   display_completion
