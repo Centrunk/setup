@@ -42,13 +42,18 @@ log_error() {
 
 # Check OS version (must be Raspberry Pi OS 12 or 13)
 check_os_version() {
-  if [ ! -f /etc/os-release ]; then
+  local version_id
+  
+  # Check for test environment variable first
+  if [ -n "${TEST_OS_VERSION:-}" ]; then
+    version_id="$TEST_OS_VERSION"
+    log_info "Using test OS version: $version_id"
+  elif [ ! -f /etc/os-release ]; then
     log_error "Cannot determine OS version (/etc/os-release not found)"
     exit 1
+  else
+    version_id=$(grep "^VERSION_ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
   fi
-  
-  local version_id
-  version_id=$(grep "^VERSION_ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
   
   if [ "$version_id" != "12" ] && [ "$version_id" != "13" ]; then
     log_error "Unsupported OS version: $version_id (must be Raspberry Pi OS 12 or 13)"
@@ -60,13 +65,18 @@ check_os_version() {
 
 # Check if running on Raspberry Pi
 check_raspberry_pi() {
-  if [ ! -f /proc/device-tree/model ]; then
+  local model
+  
+  # Check for test environment variable first
+  if [ -n "${TEST_PI_MODEL:-}" ]; then
+    model="$TEST_PI_MODEL"
+    log_info "Using test Pi model: $model"
+  elif [ ! -f /proc/device-tree/model ]; then
     log_error "Not running on a Raspberry Pi (no device tree model found)"
     exit 1
+  else
+    model=$(tr -d '\0' < /proc/device-tree/model)
   fi
-  
-  local model
-  model=$(tr -d '\0' < /proc/device-tree/model)
   
   if [[ ! "$model" =~ Raspberry\ Pi ]]; then
     log_error "Not running on a Raspberry Pi (detected: $model)"
@@ -87,7 +97,13 @@ check_root() {
 # Detect Raspberry Pi version (must be 4 or 5)
 detect_pi_version() {
   local model
-  model=$(tr -d '\0' < /proc/device-tree/model)
+  
+  # Check for test environment variable first
+  if [ -n "${TEST_PI_MODEL:-}" ]; then
+    model="$TEST_PI_MODEL"
+  else
+    model=$(tr -d '\0' < /proc/device-tree/model)
+  fi
   
   if [[ "$model" =~ "Raspberry Pi 5" ]]; then
     echo "5"

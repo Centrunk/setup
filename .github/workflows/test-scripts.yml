@@ -40,7 +40,7 @@ jobs:
         run: |
           docker exec ${{ steps.container.outputs.container }} bash -c "
             chmod +x .github/scripts/*.sh
-            ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-os-version == '12' && '4' || '5' }} ${{ matrix.pi-os-version }}
+            source ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-os-version == '12' && '4' || '5' }} ${{ matrix.pi-os-version }}
           "
 
       - name: Setup boot files
@@ -56,6 +56,7 @@ jobs:
       - name: Run prepare_pi.sh
         run: |
           docker exec ${{ steps.container.outputs.container }} bash -c "
+            source /etc/profile.d/pi-test-env.sh
             chmod +x prepare_pi.sh
             ./prepare_pi.sh
           "
@@ -68,6 +69,7 @@ jobs:
       - name: Test idempotency
         run: |
           docker exec ${{ steps.container.outputs.container }} bash -c "
+            source /etc/profile.d/pi-test-env.sh
             echo 'Testing idempotency (running script again)...'
             ./prepare_pi.sh
             echo '✓ Script is idempotent'
@@ -109,7 +111,7 @@ jobs:
         run: |
           docker exec ${{ steps.container.outputs.container }} bash -c "
             chmod +x .github/scripts/*.sh
-            ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-model }} ${{ matrix.pi-os-version }}
+            source ./.github/scripts/setup-pi-mock.sh ${{ matrix.pi-model }} ${{ matrix.pi-os-version }}
           "
 
       - name: Update packages
@@ -127,6 +129,7 @@ jobs:
       - name: Run install_dvmhost.sh
         run: |
           docker exec ${{ steps.container.outputs.container }} bash -c "
+            source /etc/profile.d/pi-test-env.sh
             chmod +x install_dvmhost.sh
             ./install_dvmhost.sh main
           "
