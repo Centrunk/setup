@@ -134,6 +134,7 @@ install_dependencies() {
     git
     nano
     stm32flash
+    xz-utils
   )
   
   log_info "Installing: ${packages[*]}"
