@@ -29,7 +29,7 @@ CROSS="${RED}✗${NC}"
 WARN="${YELLOW}⚠${NC}"
 
 # GitHub repository base URL
-GITHUB_RAW_URL="https://raw.githubusercontent.com/Centrunk/setup/main"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/Centrunk/setup/master"
 
 # Determine script directory
 # If running from stdin (curl pipe), use temp directory
